@@ -8,7 +8,7 @@ uniform sampler2D text;
 
 void main() {
 
-	int frame = int(time / (1./30)) % 48;
+	int frame = int(time * 30) % 48;
 	vec2 finalCoord = vtexCoord;
     finalCoord.x *= 1./8;
     finalCoord.y *= 1./6;
