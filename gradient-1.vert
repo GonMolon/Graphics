@@ -19,11 +19,6 @@ vec4 GREEN = vec4(0, 1, 0, 1);
 vec4 YELLOW = vec4(1, 1, 0, 1);
 vec4 RED = vec4(1, 0, 0, 1);
 
-float get_color_pos(int index) {
-	float height = boundingBoxMax.y - boundingBoxMin.y;
-	return boundingBoxMin.y + height*(index-1)/4;
-}
-
 float get_level(float y) {
 	return 4 * (vertex.y-boundingBoxMin.y)/(boundingBoxMax.y - boundingBoxMin.y);
 }
