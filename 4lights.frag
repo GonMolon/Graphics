@@ -23,7 +23,7 @@ vec4 light(vec3 V, vec3 f_normal, vec3 f_vertex, vec3 lightPos, vec3 lightColor)
 }
 
 void main() { 
-	vec3 V = normalize(modelViewMatrixInverse[3].xyz-f_vertex);
+	vec3 V = normalize((modelViewMatrixInverse*vec4(0, 0, 0, 1)).xyz - f_vertex);
 	vec3 L1 = vec3(0, 10, 0);
 	vec3 L2 = vec3(0, -10, 0);
 	vec3 L3 = vec3(10, 0, 0);
