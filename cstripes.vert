@@ -6,7 +6,7 @@ layout (location = 2) in vec3 color;
 layout (location = 3) in vec2 texCoord;
 
 out vec2 vtexCoord;
-
+	
 uniform mat4 modelViewProjectionMatrix;
 uniform mat3 normalMatrix;
 
