@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+import os
+import sys
+
+PLUGINS_PRO = "./plugins/plugins.pro"
+
+def format_template(template, name):
+    template = template.replace("<-NAME-FILE->", name)
+    template = template.replace("<-NAME-DEFINE->", name.upper())
+    template = template.replace("<-NAME-CLASS->", name)
+    return template
+
+
+def format_file(name, extension, template):
+    with open("./plugins/" + name + "/" + name + extension, "w+") as f:
+        f.write(format_template(template, name))
+
+def main():
+    plugin_name = sys.argv[1]
+    path = os.getcwd()
+    os.makedirs("./plugins/" + plugin_name)
+    format_file(plugin_name, ".h", TEMPLATE_H)
+    format_file(plugin_name, ".cpp", TEMPLATE_CPP)
+    format_file(plugin_name, ".pro", TEMPLATE_PRO)
+    with open(PLUGINS_PRO, "a") as f:
+        f.write("SUBDIRS += " + plugin_name + "\n")
+    os.system("open " + "./plugins/" + plugin_name + "/*")
+
+
+TEMPLATE_PRO = 'TARGET = $$qtLibraryTarget(<-NAME-FILE->)  # Nom del plugin\n'	\
+               'include(../common.pro)'
+
+TEMPLATE_H =	'#ifndef _<-NAME-DEFINE->_H\n'	\
+            	'#define _<-NAME-DEFINE->_H\n'	\
+            	'#include "basicplugin.h"\n'	\
+            	'\n'	\
+            	'class <-NAME-CLASS-> : public QObject, public BasicPlugin {\n'	\
+            	'	Q_OBJECT\n'	\
+            	'#if QT_VERSION >= 0x050000\n'	\
+            	'	Q_PLUGIN_METADATA(IID "BasicPlugin")\n'	\
+            	'#endif\n'	\
+            	'	Q_INTERFACES(BasicPlugin)\n'	\
+            	'public:\n'	\
+            	'	void onPluginLoad();\n'	\
+            	'	void onObjectAdd();\n'	\
+            	'	void preFrame();\n'		\
+            	'	void postFrame();\n'	\
+            	'	bool paintGL();\n'	\
+            	'	bool drawScene();\n'	\
+            	'	void keyPressEvent(QKeyEvent *);\n'	\
+            	'	void keyReleaseEvent(QKeyEvent *);\n'	\
+            	'	void mouseMoveEvent(QMouseEvent *);\n'	\
+            	'	void mousePressEvent(QMouseEvent *);\n'	\
+            	'	void mouseReleaseEvent(QMouseEvent *);\n'	\
+            	'	void wheelEvent(QWheelEvent *);\n'	\
+            	'private:\n'	\
+            	'};\n'	\
+            	'\n'	\
+            	'#endif'
+
+TEMPLATE_CPP = 	'#include "<-NAME-FILE->.h"\n'	\
+            	'#include "glwidget.h"\n\n'	\
+            	'void <-NAME-CLASS->::onPluginLoad() {} \n\n'	\
+        		'void <-NAME-CLASS->::onObjectAdd() {} \n\n'	\
+            	'void <-NAME-CLASS->::preFrame() {} \n\n'		\
+            	'void <-NAME-CLASS->::postFrame() {} \n\n'	\
+            	'bool <-NAME-CLASS->::paintGL() {} \n\n'	\
+            	'bool <-NAME-CLASS->::drawScene() {} \n\n'	\
+            	'void <-NAME-CLASS->::keyPressEvent(QKeyEvent *) {} \n\n'	\
+            	'void <-NAME-CLASS->::keyReleaseEvent(QKeyEvent *) {} \n\n'	\
+            	'void <-NAME-CLASS->::mouseMoveEvent(QMouseEvent *) {} \n\n'	\
+            	'void <-NAME-CLASS->::mousePressEvent(QMouseEvent *) {} \n\n'	\
+            	'void <-NAME-CLASS->::mouseReleaseEvent(QMouseEvent *) {} \n\n'	\
+            	'void <-NAME-CLASS->::wheelEvent(QWheelEvent *) {}'
+if __name__ == "__main__":
+    main()

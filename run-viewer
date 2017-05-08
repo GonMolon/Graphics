@@ -1,0 +1,23 @@
+#!/bin/bash
+
+cd $VVIEWER
+
+qmake
+if [ $? != "0" ]; then
+    exit 1
+fi
+make
+if [ $? != "0" ]; then
+    exit 1
+fi
+
+if [ $# -gt 0 ]
+  then
+  	export VPLUGINS="librenderdefault.dylib;libdraw-vbo-ext.dylib;libnavigatedefault.dylib;lib$1.dylib"
+  	if [ $2 == "-sl" ]
+  	  then
+  	    export VPLUGINS="$VPLUGINS;libshaderloader.dylib"
+	fi
+fi
+
+viewer/bin/viewerd.app/Contents/MacOS/viewerd
