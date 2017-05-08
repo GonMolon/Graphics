@@ -4,7 +4,12 @@ import sys
 
 PLUGINS_PRO = "./plugins/plugins.pro"
 
+shaders = False
+
 def format_template(template, name):
+    template = template.replace("<-SHADERS-INCLUDE->", SHADERS_INCLUDE if shaders else "")
+    template = template.replace("<-SHADERS-H->", SHADERS_H if shaders else "")
+    template = template.replace("<-SHADERS-CPP->", SHADERS_CPP if shaders else "")
     template = template.replace("<-NAME-FILE->", name)
     template = template.replace("<-NAME-DEFINE->", name.upper())
     template = template.replace("<-NAME-CLASS->", name)
@@ -16,7 +21,13 @@ def format_file(name, extension, template):
         f.write(format_template(template, name))
 
 def main():
+    os.chdir(os.environ.get('VVIEWER'))
+
     plugin_name = sys.argv[1]
+    if len(sys.argv) == 3 and sys.argv[2] == "-shaders":
+        global shaders
+        shaders = True
+
     path = os.getcwd()
     os.makedirs("./plugins/" + plugin_name)
     format_file(plugin_name, ".h", TEMPLATE_H)
@@ -24,53 +35,117 @@ def main():
     format_file(plugin_name, ".pro", TEMPLATE_PRO)
     with open(PLUGINS_PRO, "a") as f:
         f.write("SUBDIRS += " + plugin_name + "\n")
+    if shaders:
+        format_file(plugin_name, ".vert", "")
+        format_file(plugin_name, ".frag", "")
     os.system("open " + "./plugins/" + plugin_name + "/*")
 
 
 TEMPLATE_PRO = 'TARGET = $$qtLibraryTarget(<-NAME-FILE->)  # Nom del plugin\n'	\
                'include(../common.pro)'
 
-TEMPLATE_H =	'#ifndef _<-NAME-DEFINE->_H\n'	\
-            	'#define _<-NAME-DEFINE->_H\n'	\
-            	'#include "basicplugin.h"\n'	\
-            	'\n'	\
-            	'class <-NAME-CLASS-> : public QObject, public BasicPlugin {\n'	\
-            	'	Q_OBJECT\n'	\
-            	'#if QT_VERSION >= 0x050000\n'	\
-            	'	Q_PLUGIN_METADATA(IID "BasicPlugin")\n'	\
-            	'#endif\n'	\
-            	'	Q_INTERFACES(BasicPlugin)\n'	\
-            	'public:\n'	\
-            	'	void onPluginLoad();\n'	\
-            	'	void onObjectAdd();\n'	\
-            	'	void preFrame();\n'		\
-            	'	void postFrame();\n'	\
-            	'	bool paintGL();\n'	\
-            	'	bool drawScene();\n'	\
-            	'	void keyPressEvent(QKeyEvent *);\n'	\
-            	'	void keyReleaseEvent(QKeyEvent *);\n'	\
-            	'	void mouseMoveEvent(QMouseEvent *);\n'	\
-            	'	void mousePressEvent(QMouseEvent *);\n'	\
-            	'	void mouseReleaseEvent(QMouseEvent *);\n'	\
-            	'	void wheelEvent(QWheelEvent *);\n'	\
-            	'private:\n'	\
-            	'};\n'	\
-            	'\n'	\
-            	'#endif'
+TEMPLATE_H = '''#ifndef _<-NAME-DEFINE->_H
+#define _<-NAME-DEFINE->_H
+#include "basicplugin.h"
+<-SHADERS-INCLUDE->
+class <-NAME-CLASS-> : public QObject, public BasicPlugin {
+    Q_OBJECT
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "BasicPlugin")
+#endif
+    Q_INTERFACES(BasicPlugin)
+public:
+    void onPluginLoad();
+    void onObjectAdd();
+    void preFrame();
+    void postFrame();
+    bool paintGL();
+    bool drawScene();
+    void keyPressEvent(QKeyEvent *);
+    void keyReleaseEvent(QKeyEvent *);
+    void mouseMoveEvent(QMouseEvent *);
+    void mousePressEvent(QMouseEvent *);
+    void mouseReleaseEvent(QMouseEvent *);
+    void wheelEvent(QWheelEvent *);
+private:<-SHADERS-H->
+};
 
-TEMPLATE_CPP = 	'#include "<-NAME-FILE->.h"\n'	\
-            	'#include "glwidget.h"\n\n'	\
-            	'void <-NAME-CLASS->::onPluginLoad() {} \n\n'	\
-        		'void <-NAME-CLASS->::onObjectAdd() {} \n\n'	\
-            	'void <-NAME-CLASS->::preFrame() {} \n\n'		\
-            	'void <-NAME-CLASS->::postFrame() {} \n\n'	\
-            	'bool <-NAME-CLASS->::paintGL() {} \n\n'	\
-            	'bool <-NAME-CLASS->::drawScene() {} \n\n'	\
-            	'void <-NAME-CLASS->::keyPressEvent(QKeyEvent *) {} \n\n'	\
-            	'void <-NAME-CLASS->::keyReleaseEvent(QKeyEvent *) {} \n\n'	\
-            	'void <-NAME-CLASS->::mouseMoveEvent(QMouseEvent *) {} \n\n'	\
-            	'void <-NAME-CLASS->::mousePressEvent(QMouseEvent *) {} \n\n'	\
-            	'void <-NAME-CLASS->::mouseReleaseEvent(QMouseEvent *) {} \n\n'	\
-            	'void <-NAME-CLASS->::wheelEvent(QWheelEvent *) {}'
+#endif
+'''
+
+TEMPLATE_CPP = '''#include "<-NAME-FILE->.h"
+#include "glwidget.h"
+
+void <-NAME-CLASS->::onPluginLoad() {} 
+
+void <-NAME-CLASS->::onObjectAdd() {} 
+
+void <-NAME-CLASS->::preFrame() {} 
+
+void <-NAME-CLASS->::postFrame() {} 
+
+bool <-NAME-CLASS->::paintGL() {return false;} 
+
+bool <-NAME-CLASS->::drawScene() {return false;} 
+
+void <-NAME-CLASS->::keyPressEvent(QKeyEvent *) {} 
+
+void <-NAME-CLASS->::keyReleaseEvent(QKeyEvent *) {} 
+
+void <-NAME-CLASS->::mouseMoveEvent(QMouseEvent *) {} 
+
+void <-NAME-CLASS->::mousePressEvent(QMouseEvent *) {} 
+
+void <-NAME-CLASS->::mouseReleaseEvent(QMouseEvent *) {} 
+
+void <-NAME-CLASS->::wheelEvent(QWheelEvent *) {}
+
+<-SHADERS-CPP->
+'''
+
+SHADERS_INCLUDE = '''#include <QGLShader>
+#include <QGLShaderProgram>
+'''
+
+SHADERS_H = '''
+    QGLShaderProgram* program;
+    QGLShader* vs;
+    QGLShader* fs;
+
+    void loadShaders();
+    QString readFile(QString path);
+'''
+
+SHADERS_CPP = '''void <-NAME-CLASS->::loadShaders() {
+    vs = new QGLShader(QGLShader::Vertex, this);
+    QString code = readFile("plugins/<-NAME-FILE->/<-NAME-FILE->.vert");
+    vs->compileSourceCode(code);
+
+    fs = new QGLShader(QGLShader::Fragment, this);
+    code = readFile("plugins/<-NAME-FILE->/<-NAME-FILE->.frag");
+    fs->compileSourceCode(code);
+
+    program = new QGLShaderProgram(this);
+    program->addShader(vs);
+    program->addShader(fs);
+    program->link();
+}
+
+QString <-NAME-CLASS->::readFile(QString path) {
+    QFile file(path, this);
+    if(!file.open(QIODevice::ReadOnly)) {
+        cerr << "Error reading file " << path.toStdString() << ": " << file.errorString().toStdString() << endl;
+    }
+    QTextStream in(&file);
+    QString result;
+    while(!in.atEnd()) {
+        result += in.readLine() + ''' + r'"\n"' + ''';
+    }
+    file.close();
+    return result;
+}
+'''
+
+
 if __name__ == "__main__":
     main()
