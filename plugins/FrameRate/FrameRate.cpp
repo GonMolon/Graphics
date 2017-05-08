@@ -31,22 +31,24 @@ void FrameRate::onPluginLoad() {
 	glEnableVertexAttribArray(0);
 	glBindVertexArray(0);
 
-	elapsedTimer.start();
+	QTimer *timerFPS = new QTimer(this);
+	connect(timerFPS, SIGNAL(timeout()), this, SLOT(updateFPS()));
+	timerFPS->start(1000);
 
-	QTimer *timer = new QTimer(this);
-	connect(timer, SIGNAL(timeout()), glwidget(), SLOT(update()));
-	timer->start();
+	QTimer *timerGL = new QTimer(this);
+	connect(timerGL, SIGNAL(timeout()), glwidget(), SLOT(update()));
+	timerGL->start();
 } 
 
 void FrameRate::onObjectAdd() {} 
 
-void FrameRate::preFrame() {} 
+void FrameRate::preFrame() {
+	++frames;
+} 
 
 void FrameRate::postFrame() {
-	float now = elapsedTimer.elapsed();
-	QString info[] = {QString::number(1000/(now-prev))};
+	QString info[] = {"FPS: " + QString::number(fps)};
 	drawInfo(1, info);
-	prev = now;
 } 
 
 bool FrameRate::paintGL() {} 
@@ -127,4 +129,10 @@ QString FrameRate::readFile(QString path) {
 	}
 	file.close();
 	return result;
+}
+
+void FrameRate::updateFPS() {
+	fps = frames;
+	frames = 0;
+	glwidget()->update();
 }

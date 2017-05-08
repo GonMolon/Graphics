@@ -29,13 +29,16 @@ private:
 	QGLShader* vs;
 	QGLShader* fs;
 
-	QElapsedTimer elapsedTimer;
-	float prev = 0;
+	int frames = 0;
+	int fps = 0;
 
 	GLuint VAO_info;
 
 	void drawInfo(int n, QString info[n]);
 	QString readFile(QString path);
+
+public slots:
+	void updateFPS();
 };
 
 #endif
