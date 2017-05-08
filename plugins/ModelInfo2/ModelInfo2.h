@@ -36,6 +36,7 @@ private:
 	GLuint VAO_info;
 
 	void updateInfo();
+	void drawInfo(int n, QString info[n]);
 	QString readFile(QString path);
 };
 
