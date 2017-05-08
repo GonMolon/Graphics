@@ -30,6 +30,12 @@ void FrameRate::onPluginLoad() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
 	glBindVertexArray(0);
+
+	elapsedTimer.start();
+
+	QTimer *timer = new QTimer(this);
+	connect(timer, SIGNAL(timeout()), glwidget(), SLOT(update()));
+	timer->start();
 } 
 
 void FrameRate::onObjectAdd() {} 
@@ -37,8 +43,10 @@ void FrameRate::onObjectAdd() {}
 void FrameRate::preFrame() {} 
 
 void FrameRate::postFrame() {
-	QString info[] = {"hello"};
+	float now = elapsedTimer.elapsed();
+	QString info[] = {QString::number(1000/(now-prev))};
 	drawInfo(1, info);
+	prev = now;
 } 
 
 bool FrameRate::paintGL() {} 

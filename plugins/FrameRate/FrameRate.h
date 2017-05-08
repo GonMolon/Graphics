@@ -29,6 +29,9 @@ private:
 	QGLShader* vs;
 	QGLShader* fs;
 
+	QElapsedTimer elapsedTimer;
+	float prev = 0;
+
 	GLuint VAO_info;
 
 	void drawInfo(int n, QString info[n]);
