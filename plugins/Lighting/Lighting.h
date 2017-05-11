@@ -29,7 +29,6 @@ private:
     QGLShader* fs;
 
     void loadShaders();
-    QString readFile(QString path);
 
 };
 
