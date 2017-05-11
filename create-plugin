@@ -113,36 +113,19 @@ SHADERS_H = '''
     QGLShader* fs;
 
     void loadShaders();
-    QString readFile(QString path);
 '''
 
 SHADERS_CPP = '''void <-NAME-CLASS->::loadShaders() {
     vs = new QGLShader(QGLShader::Vertex, this);
-    QString code = readFile("plugins/<-NAME-FILE->/<-NAME-FILE->.vert");
-    vs->compileSourceCode(code);
+    vs->compileSourceFile("plugins/<-NAME-FILE->/<-NAME-FILE->.vert");
 
     fs = new QGLShader(QGLShader::Fragment, this);
-    code = readFile("plugins/<-NAME-FILE->/<-NAME-FILE->.frag");
-    fs->compileSourceCode(code);
+    fs->compileSourceFile("plugins/<-NAME-FILE->/<-NAME-FILE->.frag");
 
     program = new QGLShaderProgram(this);
     program->addShader(vs);
     program->addShader(fs);
     program->link();
-}
-
-QString <-NAME-CLASS->::readFile(QString path) {
-    QFile file(path, this);
-    if(!file.open(QIODevice::ReadOnly)) {
-        cerr << "Error reading file " << path.toStdString() << ": " << file.errorString().toStdString() << endl;
-    }
-    QTextStream in(&file);
-    QString result;
-    while(!in.atEnd()) {
-        result += in.readLine() + ''' + r'"\n"' + ''';
-    }
-    file.close();
-    return result;
 }
 '''
 
