@@ -11,13 +11,17 @@ if [ $? != "0" ]; then
     exit 1
 fi
 
+export VPLUGINS="librenderdefault.dylib;libdraw-vbo-ext.dylib;libnavigatedefault.dylib"
+
 if [ $# -gt 0 ]
   then
-  	export VPLUGINS="librenderdefault.dylib;libdraw-vbo-ext.dylib;libnavigatedefault.dylib;lib$1.dylib"
+  	export VPLUGINS="$VPLUGINS;lib$1.dylib"
   	if [ $2 == "-sl" ]
   	  then
   	    export VPLUGINS="$VPLUGINS;libshaderloader.dylib"
 	fi
+else
+	export VPLUGINS="$VPLUGINS;libshaderloader.dylib"
 fi
 
 viewer/bin/viewerd.app/Contents/MacOS/viewerd
