@@ -5,11 +5,16 @@ import sys
 PLUGINS_PRO = "./plugins/plugins.pro"
 
 shaders = False
+draw_info = False
 
 def format_template(template, name):
     template = template.replace("<-SHADERS-INCLUDE->", SHADERS_INCLUDE if shaders else "")
     template = template.replace("<-SHADERS-H->", SHADERS_H if shaders else "")
     template = template.replace("<-SHADERS-CPP->", SHADERS_CPP if shaders else "")
+    template = template.replace("<-SHADERS_CALL->", SHADERS_CALL if shaders else "")
+    template = template.replace("<-DRAW_INFO-H->", DRAW_INFO_H if draw_info else "")
+    template = template.replace("<-DRAW_INFO-CPP->", DRAW_INFO_CPP if draw_info else "")
+    template = template.replace("<-DRAW_VAO->", DRAW_VAO if draw_info else "")
     template = template.replace("<-NAME-FILE->", name)
     template = template.replace("<-NAME-DEFINE->", name.upper())
     template = template.replace("<-NAME-CLASS->", name)
@@ -24,8 +29,11 @@ def main():
     os.chdir(os.environ.get('VVIEWER'))
 
     plugin_name = sys.argv[1]
-    if len(sys.argv) == 3 and sys.argv[2] == "-shaders":
-        global shaders
+
+    global shaders, draw_info
+    shaders = "--shaders" in sys.argv
+    draw_info = "--draw" in sys.argv
+    if draw_info:
         shaders = True
 
     path = os.getcwd()
@@ -36,8 +44,8 @@ def main():
     with open(PLUGINS_PRO, "a") as f:
         f.write("SUBDIRS += " + plugin_name + "\n")
     if shaders:
-        format_file(plugin_name, ".vert", "")
-        format_file(plugin_name, ".frag", "")
+        format_file(plugin_name, ".vert", SHADER_INFO_VERT if draw_info else "")
+        format_file(plugin_name, ".frag", SHADER_INFO_FRAG if draw_info else "")
     os.system("open " + "./plugins/" + plugin_name + "/*")
 
 
@@ -67,7 +75,7 @@ public:
     void mousePressEvent(QMouseEvent *);
     void mouseReleaseEvent(QMouseEvent *);
     void wheelEvent(QWheelEvent *);
-private:<-SHADERS-H->
+private:<-SHADERS-H-><-DRAW_INFO-H->
 };
 
 #endif
@@ -76,7 +84,7 @@ private:<-SHADERS-H->
 TEMPLATE_CPP = '''#include "<-NAME-FILE->.h"
 #include "glwidget.h"
 
-void <-NAME-CLASS->::onPluginLoad() {} 
+void <-NAME-CLASS->::onPluginLoad() {<-SHADERS_CALL-><-DRAW_VAO->} 
 
 void <-NAME-CLASS->::onObjectAdd() {} 
 
@@ -99,8 +107,7 @@ void <-NAME-CLASS->::mousePressEvent(QMouseEvent *) {}
 void <-NAME-CLASS->::mouseReleaseEvent(QMouseEvent *) {} 
 
 void <-NAME-CLASS->::wheelEvent(QWheelEvent *) {}
-
-<-SHADERS-CPP->
+<-SHADERS-CPP-><-DRAW_INFO-CPP->
 '''
 
 SHADERS_INCLUDE = '''#include <QGLShader>
@@ -111,11 +118,11 @@ SHADERS_H = '''
     QGLShaderProgram* program;
     QGLShader* vs;
     QGLShader* fs;
-
     void loadShaders();
 '''
 
-SHADERS_CPP = '''void <-NAME-CLASS->::loadShaders() {
+SHADERS_CPP = '''
+void <-NAME-CLASS->::loadShaders() {
     vs = new QGLShader(QGLShader::Vertex, this);
     vs->compileSourceFile("plugins/<-NAME-FILE->/<-NAME-FILE->.vert");
 
@@ -129,6 +136,113 @@ SHADERS_CPP = '''void <-NAME-CLASS->::loadShaders() {
 }
 '''
 
+DRAW_INFO_H = '''   
+    GLuint VAO_info;
+    void initializeVAOInfo();
+    void drawInfo(int n, QString info[n]);
+'''
+
+DRAW_INFO_CPP = '''
+void <-NAME-CLASS->::initializeVAOInfo() {
+    // Create VAO for showing the info on the screen
+    glGenVertexArrays(1, &VAO_info);
+    glBindVertexArray(VAO_info);
+    float z = -0.99999;
+    float coords[] = {  -1, -1, z, 
+                         1, -1, z, 
+                        -1,  1, z, 
+                         1,  1, z };
+    GLuint VBO_coords;
+    glGenBuffers(1, &VBO_coords);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO_coords);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(coords), coords, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
+}
+
+void <-NAME-CLASS->::drawInfo(int n, QString info[n]) {
+    const int size = 1024;
+    QImage image(size, size, QImage::Format_ARGB32);
+    QColor fill_color(Qt::white);
+    fill_color.setAlpha(0);
+    image.fill(fill_color);    
+    QPainter painter(&image);
+    QFont font;
+    font.setPixelSize(32);
+    painter.setFont(font);
+    painter.setPen(QColor(50, 50, 50, 255));
+    int x = 15;
+    int y = 50;
+    for(int i = 0; i < n; ++i) {
+        painter.drawText(x, y+40*i, info[i]);
+    }
+    painter.end();
+
+    // Load image to texture
+    const int textureUnit = 5;
+    GLuint textureID;
+
+    glActiveTexture(GL_TEXTURE0 + textureUnit);
+    QImage im = QGLWidget::convertToGLFormat(image);
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, im.width(), im.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, im.bits());
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    //Active shaders
+    program->bind();
+    program->setUniformValue("colorMap", textureUnit);
+    program->setUniformValue("width", float(glwidget()->width()*2));
+    program->setUniformValue("height", float(glwidget()->height()*2));    
+
+    // Draw
+    glBindVertexArray(VAO_info);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    
+    // Release resources
+    glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDeleteTextures(1, &textureID);
+    program->release();
+}
+'''
+
+SHADER_INFO_VERT = '''#version 330 core
+in vec3 vertex;
+
+void main() {
+    gl_Position = vec4(vertex,1.0);
+}
+'''
+
+SHADER_INFO_FRAG = '''#version 330 core
+out vec4 fragColor;
+
+uniform sampler2D colorMap;
+uniform float width;
+uniform float height;
+
+void main() {
+    vec2 st = (gl_FragCoord.xy - vec2(0.5))/vec2(width, height);
+    fragColor = texture(colorMap, st);
+    if(fragColor.w == 0) {
+        discard;
+    }
+}
+'''
+
+SHADERS_CALL = '''
+    loadShaders();
+'''
+
+DRAW_VAO = '''
+    initializeVAOInfo();
+'''
 
 if __name__ == "__main__":
     main()
