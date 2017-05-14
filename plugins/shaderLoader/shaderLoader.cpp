@@ -1706,7 +1706,7 @@ void ShaderLoader::createDefaultShaders(bool createAlsoGS)
     QString filename = QInputDialog::getText(glwidget(), "New Shaders",
                                          "Base filename:", QLineEdit::Normal,
                                          "myShader", &ok);
-
+    filename = "./shaders/" + filename;
     if (!ok || filename.isEmpty()) return;
 
     // check if files already exist
@@ -1768,16 +1768,15 @@ void ShaderLoader::createDefaultShaders(bool createAlsoGS)
 
         out << "uniform mat4 modelViewProjectionMatrix;" << endl;
         out << "uniform mat3 normalMatrix;" << endl << endl;
-        out << "void main()" << endl;
-        out << "{" << endl;
+        out << "void main() {" << endl;
         out << "    vec3 N = normalize(normalMatrix * normal);" << endl;
         if (!createAlsoGS)
         {
-            out << "    frontColor = vec4(color,1.0) * N.z;" << endl;
+            out << "    frontColor = vec4(color, 1.0) * N.z;" << endl;
             out << "    vtexCoord = texCoord;" << endl;
         }
         else
-            out << "    vfrontColor = vec4(color,1.0) * N.z;" << endl;
+            out << "    vfrontColor = vec4(color, 1.0) * N.z;" << endl;
         out << "    gl_Position = modelViewProjectionMatrix * vec4(vertex, 1.0);" << endl;
         out << "}" << endl;
         
@@ -1795,10 +1794,8 @@ void ShaderLoader::createDefaultShaders(bool createAlsoGS)
         out << "in vec4 vfrontColor[];" << endl;
         out << "out vec4 gfrontColor;" << endl;
         out << "" << endl;
-        out << "void main( void )" << endl;
-        out << "{" << endl;
-        out << "	for( int i = 0 ; i < 3 ; i++ )" << endl;
-        out << "	{" << endl;
+        out << "void main(void) {" << endl;
+        out << "	for(int i = 0; i < 3; i++) {" << endl;
         out << "		gfrontColor = vfrontColor[i];" << endl;
         out << "		gl_Position = gl_in[i].gl_Position;" << endl;
         out << "		EmitVertex();" << endl;
@@ -1820,8 +1817,7 @@ void ShaderLoader::createDefaultShaders(bool createAlsoGS)
             out << "in vec4 gfrontColor;" << endl;
         out << "out vec4 fragColor;" << endl;
         out << "" << endl;
-        out << "void main()" << endl;
-        out << "{" << endl;
+        out << "void main() {" << endl;
         if (!createAlsoGS)
             out << "    fragColor = frontColor;" << endl;
         else
