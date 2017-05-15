@@ -1795,7 +1795,7 @@ void ShaderLoader::createDefaultShaders(bool createAlsoGS)
         out << "out vec4 gfrontColor;" << endl;
         out << "" << endl;
         out << "void main(void) {" << endl;
-        out << "	for(int i = 0; i < 3; i++) {" << endl;
+        out << "	for(int i = 0; i < 3; ++i) {" << endl;
         out << "		gfrontColor = vfrontColor[i];" << endl;
         out << "		gl_Position = gl_in[i].gl_Position;" << endl;
         out << "		EmitVertex();" << endl;
