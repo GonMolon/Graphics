@@ -15,6 +15,7 @@ float step = 0.2;
 const vec4 GREY = vec4(vec3(0.8), 1);
 
 void cubeVertex(bool x, bool y, bool z, vec3 BT, vec3 N) {
+	N = normalize(N);
 	gfrontColor = GREY * N.z;
 	float s = step/2;
 	vec3 V = vec3(x ? s : -s, y ? s : -s, z ? s : -s);
