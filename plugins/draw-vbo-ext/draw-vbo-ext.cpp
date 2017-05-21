@@ -16,7 +16,7 @@ void DrawVBO::cleanUp()
 {
   GLWidget &g = *glwidget();
   for(unsigned int i=0; i<coordBuffers.size(); i++) // for each buffer (that is, for each object)
-    {
+  {
       g.glDeleteBuffers(coordBuffers.size(),  &coordBuffers[i]);
       g.glDeleteBuffers(normalBuffers.size(), &normalBuffers[i]);
       g.glDeleteBuffers(indexBuffers.size(),  &indexBuffers[i]);
@@ -24,15 +24,15 @@ void DrawVBO::cleanUp()
       g.glDeleteBuffers(colorBuffers.size(),  &colorBuffers[i]);
 
       g.glDeleteVertexArrays(VAOs.size(), &VAOs[i]);
-    }
-    coordBuffers.clear();
-    normalBuffers.clear();
-    indexBuffers.clear();
-    stBuffers.clear();
-    colorBuffers.clear();
-    VAOs.clear();
+  }
+  coordBuffers.clear();
+  normalBuffers.clear();
+  indexBuffers.clear();
+  stBuffers.clear();
+  colorBuffers.clear();
+  VAOs.clear();
 
-    numIndices.clear(); 
+  numIndices.clear(); 
 }
 
 DrawVBO::~DrawVBO()
@@ -69,10 +69,10 @@ bool DrawVBO::drawScene()
         //cout << "  Object " << i << " with " << numIndices[i] << " indices " << endl;
 
         g.glBindVertexArray(VAOs[i]);
-	g.glDrawElements(GL_TRIANGLES, numIndices[i], GL_UNSIGNED_INT, (GLvoid*) 0);
+        g.glDrawElements(GL_TRIANGLES, numIndices[i], GL_UNSIGNED_INT, (GLvoid*) 0);
         //cout << "  End " << endl;
 
-	}	
+    }	
     g.glBindVertexArray(0);
     return true;
 }
@@ -80,8 +80,8 @@ bool DrawVBO::drawScene()
 void DrawVBO::onPluginLoad()
 {
   if (VAOs.size() != 0) cleanUp();
-    for(unsigned int i=0; i<scene()->objects().size(); i++)
-        addVBO(i);
+  for(unsigned int i=0; i<scene()->objects().size(); i++)
+    addVBO(i);
 }
 
 void DrawVBO::onObjectAdd()
@@ -95,7 +95,7 @@ void DrawVBO::buildVF(const Object& obj, vector<vector<int> >& VF)
     VF.clear();
     VF.resize(obj.vertices().size());
     for(unsigned int j=0; j<obj.faces().size(); j++)  // for each face
-	{
+    {
         const Face& face = obj.faces()[j];
 	    //Vector N = face.normal();
 		for(unsigned int k=0; k<(unsigned int)face.numVertices(); k++) // for each vertex
@@ -198,9 +198,9 @@ void DrawVBO::addVBO(unsigned int currentObject)
         {
             Cluster& cluster = cl[k];
             Point P = obj.vertices()[j].coord();
-			vertices.push_back(P.x()); vertices.push_back(P.y()); vertices.push_back(P.z());
+            vertices.push_back(P.x()); vertices.push_back(P.y()); vertices.push_back(P.z());
             Vector N = cluster.normal.normalized();
-			normals.push_back(N.x()); normals.push_back(N.y()); normals.push_back(N.z());
+            normals.push_back(N.x()); normals.push_back(N.y()); normals.push_back(N.z());
             float r = obj.boundingBox().radius();
             //float rx = obj.boundingBox().max().x() - obj.boundingBox().min().x();
             //float ry = obj.boundingBox().max().y() - obj.boundingBox().min().y();
@@ -240,7 +240,7 @@ void DrawVBO::addVBO(unsigned int currentObject)
             indices.push_back(index);
 
             // second vertex 
-			int v1 = face.vertexIndex(k);
+            int v1 = face.vertexIndex(k);
             index = findIndexInCluster(clusters[v1], j);
             indices.push_back(index);
 
@@ -248,8 +248,8 @@ void DrawVBO::addVBO(unsigned int currentObject)
             int v2 = face.vertexIndex(k+1);
             index = findIndexInCluster(clusters[v2], j);
             indices.push_back(index);
-		}
-	}
+        }
+    }
 
     // Step 2: Create empty buffers (coords, normals, st, indices)
     GLWidget &g = *glwidget();
