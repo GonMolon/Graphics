@@ -10,7 +10,7 @@ void Multitexturing::onPluginLoad() {
 void Multitexturing::onObjectAdd() {} 
 
 void Multitexturing::preFrame() {
-    /*// bind shader and define uniforms
+    // bind shader and define uniforms
     program->bind();
     program->setUniformValue("sampler0", 0);  // texture unit del primer sampler 
     program->setUniformValue("sampler1", 1);  // texture unit del segon  sampler 
@@ -22,17 +22,17 @@ void Multitexturing::preFrame() {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId0);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, textureId1);*/
+    glBindTexture(GL_TEXTURE_2D, textureId1);
 } 
 
 void Multitexturing::postFrame() {
-    // // unbind shader
-    // program->release();
-    // // unbind textures
-    // glActiveTexture(GL_TEXTURE0);
-    // glBindTexture(GL_TEXTURE_2D, 0);
-    // glActiveTexture(GL_TEXTURE1);
-    // glBindTexture(GL_TEXTURE_2D, 0);
+    // unbind shader
+    program->release();
+    // unbind textures
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 0);
 } 
 
 bool Multitexturing::paintGL() {return false;} 
