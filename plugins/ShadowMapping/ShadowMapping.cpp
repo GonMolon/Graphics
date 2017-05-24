@@ -28,58 +28,58 @@ void ShadowMapping::postFrame() {}
 
 bool ShadowMapping::paintGL() {
 	    // Pass 1. Build depth map
-	    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-	    QMatrix4x4 CMVP = lightCamera.projectionMatrix() * lightCamera.viewMatrix();
-	    glwidget()->defaultProgram()->setUniformValue("modelViewProjectionMatrix", CMVP); 
-	    
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	QMatrix4x4 CMVP = lightCamera.projectionMatrix() * lightCamera.viewMatrix();
+	glwidget()->defaultProgram()->setUniformValue("modelViewProjectionMatrix", CMVP); 
+	
 	    // Draw scene (with z offset)
-	    glPolygonOffset(1,1);
-	    glEnable(GL_POLYGON_OFFSET_FILL);
-	    drawPlugin()->drawScene();
-	    glDisable(GL_POLYGON_OFFSET_FILL);
+	glPolygonOffset(1,1);
+	glEnable(GL_POLYGON_OFFSET_FILL);
+	drawPlugin()->drawScene();
+	glDisable(GL_POLYGON_OFFSET_FILL);
 
 	    //return true; // show shadow map
 
 	    // Get texture
-	    glBindTexture(GL_TEXTURE_2D, textureId);
-	    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT);
+	glBindTexture(GL_TEXTURE_2D, textureId);
+	glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT);
 
-	    // Pass 2. Draw scene using shadowmap
-	    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-	    program->bind();
-	    program->setUniformValue("lightViewMatrix", lightCamera.viewMatrix());
-	    program->setUniformValue("lightProjectionMatrix", lightCamera.projectionMatrix());
-	    QMatrix4x4 biasMatrix;
-	    biasMatrix.translate(0.5, 0.5, 0.5);
-	    biasMatrix.scale(0.5, 0.5, 0.5);
-	    program->setUniformValue("biasMatrix", biasMatrix);
-	    program->setUniformValue("shadowMap", 0); 
-	    program->setUniformValue("lightPos", lightCamera.getObs());
-	    QMatrix4x4 MVP = camera()->projectionMatrix() * camera()->viewMatrix();
-	    program->setUniformValue("modelViewProjectionMatrix", MVP); 
-	    program->setUniformValue("modelViewMatrix", camera()->viewMatrix());
-	    program->setUniformValue("normalMatrix", camera()->viewMatrix().normalMatrix());
+    // Pass 2. Draw scene using shadowmap
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    program->bind();
+    program->setUniformValue("lightViewMatrix", lightCamera.viewMatrix());
+    program->setUniformValue("lightProjectionMatrix", lightCamera.projectionMatrix());
+    QMatrix4x4 biasMatrix;
+    biasMatrix.translate(0.5, 0.5, 0.5);
+    biasMatrix.scale(0.5, 0.5, 0.5);
+    program->setUniformValue("biasMatrix", biasMatrix);
+    program->setUniformValue("shadowMap", 0); 
+    program->setUniformValue("lightPos", lightCamera.getObs());
+    QMatrix4x4 MVP = camera()->projectionMatrix() * camera()->viewMatrix();
+    program->setUniformValue("modelViewProjectionMatrix", MVP); 
+    program->setUniformValue("modelViewMatrix", camera()->viewMatrix());
+    program->setUniformValue("normalMatrix", camera()->viewMatrix().normalMatrix());
 
-	    // draw scene + floor 
-	    drawPlugin()->drawScene();
-
-
-	    Point min = scene()->boundingBox().min();
-	    float r = scene()->boundingBox().radius();
-	    drawQuad(Point(-r,min.y(), -r), Point( r,min.y(), -r), Point( r,min.y(),  r), Point(-r,min.y(),  r));
-
-	    program->release();
-	    glBindTexture(GL_TEXTURE_2D, 0);
-
-	    // Help
-	    //glColor3f(0.0, 0.0, 0.0);
-		//int x = 5;
-		//int y = 15;
-		//glwidget()->renderText(x,y, QString("[Shadowmap plugin] C - Copy camera position to light position"));
-	    cout << "[Shadowmap plugin] C - Copy camera position to light position" << endl;
+    // draw scene + floor 
+    drawPlugin()->drawScene();
 
 
-	    return true;
+    Point min = scene()->boundingBox().min();
+    float r = scene()->boundingBox().radius();
+    drawQuad(Point(-r,min.y(), -r), Point( r,min.y(), -r), Point( r,min.y(),  r), Point(-r,min.y(),  r));
+
+    program->release();
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    // Help
+    //glColor3f(0.0, 0.0, 0.0);
+	//int x = 5;
+	//int y = 15;
+	//glwidget()->renderText(x,y, QString("[Shadowmap plugin] C - Copy camera position to light position"));
+    cout << "[Shadowmap plugin] C - Copy camera position to light position" << endl;
+
+
+    return true;
 } 
 
 bool ShadowMapping::drawScene() {return false;} 
