@@ -15,18 +15,30 @@ int Glowing::printOglError(const char file[], int line, const char func[]) {
     glErr = glGetError();
     if (glErr != GL_NO_ERROR) {
         printf("glError in file %s @ line %d: %s function: %s\n",
-			     file, line, "gluErrorString(glErr)", func);
+            file, line, "gluErrorString(glErr)", func);
         retCode = 1;
     }
     return retCode;
 }
 
 void Glowing::onPluginLoad() {
-	glwidget()->resize(IMAGE_WIDTH,IMAGE_HEIGHT);
-
     loadShaders();
     initializeVAOInfo();
-} 
+
+    glActiveTexture(GL_TEXTURE0);
+    glGenTextures( 1, &textureId);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+              GL_LINEAR_MIPMAP_LINEAR );
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, IMAGE_WIDTH, IMAGE_HEIGHT,
+           0, GL_RGB, GL_FLOAT, NULL);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glwidget()->resize(IMAGE_WIDTH,IMAGE_HEIGHT);
+}
 
 void Glowing::onObjectAdd() {} 
 
@@ -38,7 +50,9 @@ bool Glowing::paintGL() {
     // Pass 1. Draw scene
     glClearColor(0,0,0,0);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-    drawPlugin()->drawScene();
+    if(drawPlugin()) {
+        drawPlugin()->drawScene();
+    }
 
     // Get texture
     glBindTexture(GL_TEXTURE_2D, textureId);
@@ -47,21 +61,22 @@ bool Glowing::paintGL() {
 
     // Pass 2. Draw quad using texture
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
     program->bind();
     program->setUniformValue("colorMap", 0);
     program->setUniformValue("SIZE", float(IMAGE_WIDTH));  
- 
+
 	// Quad covering viewport 
     program->setUniformValue("modelViewProjectionMatrix", QMatrix4x4() );  
 
     // Draw
-	glBindVertexArray (VAO_rect);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glBindVertexArray(0);
+    glBindVertexArray(VAO_rect);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
 
-	program->release();
-	glBindTexture(GL_TEXTURE_2D, 0);
-	return true;
+    program->release();
+    glBindTexture(GL_TEXTURE_2D, 0);
+    return true;
 } 
 
 bool Glowing::drawScene() {return false;} 
@@ -97,9 +112,9 @@ void Glowing::initializeVAOInfo() {
     glBindVertexArray(VAO_rect);
     float z = -0.99999;
     float coords[] = {  -1, -1, z, 
-                         1, -1, z, 
-                        -1,  1, z, 
-                         1,  1, z };
+       1, -1, z, 
+       -1,  1, z, 
+       1,  1, z };
     GLuint VBO_coords;
     glGenBuffers(1, &VBO_coords);
     glBindBuffer(GL_ARRAY_BUFFER, VBO_coords);
@@ -107,5 +122,5 @@ void Glowing::initializeVAOInfo() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
     glBindVertexArray(0);
-}
+   }
 
