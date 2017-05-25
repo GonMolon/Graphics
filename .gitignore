@@ -16,5 +16,5 @@ build/
 bin/
 *.pro
 
-!plugins/plugins.pro
+!plugins/*.pro
 !plugins/*/*.pro
