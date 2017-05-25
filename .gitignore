@@ -15,3 +15,5 @@ Makefile
 build/
 bin/
 *.pro
+
+!plugins/plugins.pro
